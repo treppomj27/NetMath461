@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 class Dataset:
     def __init__(self, data):
         # Reformat the dataset
-        self.values = np.array(data).reshape((-1, 1))
+        self.values = np.array(data)
         del data
         self.N, self.M = self.values.shape
 
