@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 
 
 class Dataset:
-    def __init__(self, data):
+    def __init__(self, data, name='X'):
         # Reformat the dataset
+        self.name = name
         self.values = np.array(data).reshape((-1, 1))
-        del data
+        del name, data
         self.N, self.M = self.values.shape
 
         # Check to ensure the dataset is properly formatted
@@ -27,8 +28,7 @@ class Dataset:
             if distinct:
                 Distinct_Values.append(self.values[i][0])
         Distinct_Values.sort()
-        self.l_distinct_values = Distinct_Values
-        self.distinct_values = np.array(self.l_distinct_values).reshape((-1, 1))
+        self.distinct_values = np.array(Distinct_Values).reshape((-1, 1))
         del Distinct_Values
         self.D = self.distinct_values.shape[0]
 
@@ -40,16 +40,17 @@ class Dataset:
                 if self.distinct_values[i] == self.values[j]:
                     ctr += 1
             Relative_Frequencies.append(ctr / self.N)
-        self.l_relative_frequencies = Relative_Frequencies
-        self.relative_frequencies = np.array(self.l_relative_frequencies).reshape((-1, 1))
+        self.relative_frequencies = np.array(Relative_Frequencies).reshape((-1, 1))
         del Relative_Frequencies
 
+        # Compute the expected value
         Expectation = 0
         for i in range(0, self.D):
             Expectation += self.distinct_values[i] * self.relative_frequencies[i]
         self.expect = Expectation
         del Expectation
 
+        # Compute the variance
         Variance = 0
         for i in range(0, self.D):
             Variance += (self.distinct_values[i] - self.expect)**2 * self.relative_frequencies[i]
@@ -59,44 +60,53 @@ class Dataset:
         del Variance
         self.standdev = np.sqrt(self.var)
 
-    def print_v(self):
-        report = '['
-        for i in range(0, self.N - 1):
-            report += str(self.values[i][0]) + ', '
-        print('Values:')
-        print(report + str(self.values[self.N-1][0]) + ']\n')
-        del report
+    def print_v(self, sort=True):
+        """
+        Prints the dataset's values.
+
+        :param sort: (bool) Whether the values will be sorted
+        :return: (void)
+        """
+        print('Values of ' + self.name + ':')
+        if sort:
+            print(np.sort(self.values[:, 0]), '\n')
+        else:
+            print(self.values[:, 0], '\n')
 
     def print_dv(self):
-        report = '['
-        for i in range(0, self.D - 1):
-            report += str(self.distinct_values[i][0]) + ', '
-        print('Distinct Values:')
-        print(report + str(self.distinct_values[self.D-1][0]) + ']\n')
+        """
+        Prints the dataset's distinct values.
+
+        :return: (void)
+        """
+        print('Distinct Values of ' + self.name + ':')
+        print(self.distinct_values[:, 0], '\n')
 
     def print_rf(self):
         labels = ['Distinct Value', 'Relative Frequency']
         report = pd.DataFrame(np.hstack((self.distinct_values, self.relative_frequencies)), columns=labels)
         if self.values.dtype == 'int64':
             report['Distinct Value'] = report['Distinct Value'].astype(int)
+        print(' Dataset ' + self.name + ':')
         print(report.to_string(index=False), '\n')
 
     def print_evs(self):
         labels = ['Expectation', 'Variance', 'Standard Deviation']
         evs = np.array([self.expect, self.var, self.standdev]).reshape((1, -1))
         report = pd.DataFrame(evs, columns=labels)
+        print(' Dataset ' + self.name + ':')
         print(report.to_string(index=False), '\n')
 
     def plot_rf(self):
         plt.figure()
-        plt.bar(self.l_distinct_values, self.l_relative_frequencies, width=0.1, color='purple')
+        plt.bar(self.distinct_values[:, 0], self.relative_frequencies[:, 0], width=0.1, color='purple')
         plt.scatter(self.distinct_values, self.relative_frequencies, color='orange')
         plt.axvline(x=self.expect, ymin=0, ymax=1, color='green')
         plt.xlim(min(self.distinct_values) - 0.5, max(self.distinct_values) + 0.5)
         plt.ylim(0, min(1, np.max(self.relative_frequencies) * 1.25))
         plt.xlabel('x')
         plt.ylabel('Relative Frequency')
-        plt.title('Relative Frequency Plot')
+        plt.title('Relative Frequency Plot of ' + self.name)
         plt.legend(['Expectation = ' + str(float(np.round(self.expect, 3))), 'Relative Frequencies'])
 
     def plot_cdf(self):
@@ -123,17 +133,17 @@ class Dataset:
         plt.plot([self.distinct_values[self.D-1][0], self.distinct_values[self.D-1][0] + 0.5], [height, height], 'b-')
         plt.xlabel('x')
         plt.ylabel('F(x)')
-        plt.title('Cumulative Distribution Function of X')
+        plt.title('Cumulative Distribution Function of ' + self.name)
         plt.legend(['Expectation = ' + str(float(np.round(self.expect, 3))), 'F(x)'])
 
 
 def cumdist(a, X):
     CD = 0
     i = 0
-    while i < X.D and X.distinct_values[i]:
-        CD += X.relative_frequencies[i]
+    while i < X.D and X.distinct_values[i][0] <= a:
+        CD += X.relative_frequencies[i][0]
         i += 1
-    return float(CD)
+    return np.round(CD, 6)
 
 
 def prob(A, X):
