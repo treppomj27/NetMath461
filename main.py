@@ -17,8 +17,3 @@ A.print_v(sort=True)
 X.print_dv()
 X.print_rf()
 X.print_evs()
-
-X.plot_rf()
-X.plot_cdf()
-
-plt.show()
