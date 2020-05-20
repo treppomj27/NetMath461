@@ -164,6 +164,50 @@ class Dataset:
         plt.legend(['Expectation = ' + str(float(np.round(self.expect, 3))), 'F(x)'])
 
 
+def union(A, B, name='Dataset'):
+    """
+    Returns a new dataset with the intersection of datasets A and B. The name of the dataset for printing and graphical
+    purposes can be specified using the "name" parameter.
+
+    :param A: (dataset)
+    :param B: (dataset)
+    :param name: (string)
+    :return: (dataset)
+    """
+    new_data = []
+    for i in range(0, A.D):
+        new_data.append(A.distinct_values[i][0])
+    for i in range(0, B.D):
+        distinct = True
+        for j in range(0, A.D):
+            if B.distinct_values[i][0] == A.distinct_values[j][0]:
+                distinct = False
+        if distinct:
+            new_data.append(B.distinct_values[i][0])
+    return Dataset(new_data.sort(), name=name)
+
+
+def intersect(A, B, name='Dataset'):
+    """
+    Returns a new dataset with the union of datasets A and B. The name of the dataset for printing and graphical
+    purposes can be specified using the "name" parameter.
+
+    :param A: (dataset)
+    :param B: (dataset)
+    :param name: (string)
+    :return: (dataset)
+    """
+    new_data = []
+    for i in range(0, A.D):
+        match = False
+        for j in range(0, B.D):
+            if A.distinct_values[i][0] == B.distinct_values[j][0]:
+                match = True
+        if match:
+            new_data.append(A.distinct_values[i][0])
+    return Dataset(new_data, name=name)
+
+
 def cumdist(x, X):
     """
     Computes the cumulative distribution function at position x. This is equivalent to Prob[X <= x], the likelihood that
