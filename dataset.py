@@ -5,7 +5,14 @@ import matplotlib.pyplot as plt
 
 
 class Dataset:
-    def __init__(self, data, name='X'):
+    def __init__(self, data, name='Dataset'):
+        """
+        Initializes a one-dimensional dataset object. The name of the dataset for printing and graphical purposes can be
+        specified using the "name" parameter.
+
+        :param data: (list / array) the elements of the dataset
+        :param name: (string) the name of the dataset
+        """
         # Reformat the dataset
         self.name = name
         self.values = np.array(data).reshape((-1, 1))
@@ -83,21 +90,36 @@ class Dataset:
         print(self.distinct_values[:, 0], '\n')
 
     def print_rf(self):
+        """
+        Prints the dataset's distinct values and their corresponding relative frequencies in a table format.
+
+        :return: (void)
+        """
         labels = ['Distinct Value', 'Relative Frequency']
         report = pd.DataFrame(np.hstack((self.distinct_values, self.relative_frequencies)), columns=labels)
         if self.values.dtype == 'int64':
             report['Distinct Value'] = report['Distinct Value'].astype(int)
-        print(' Dataset ' + self.name + ':')
+        print(self.name + ':')
         print(report.to_string(index=False), '\n')
 
     def print_evs(self):
-        labels = ['Expectation', 'Variance', 'Standard Deviation']
+        """
+        Prints the dataset's expected value, variance, and standard deviation in a table format.
+
+        :return: (void)
+        """
+        labels = ['Expected Value', 'Variance', 'Standard Deviation']
         evs = np.array([self.expect, self.var, self.standdev]).reshape((1, -1))
         report = pd.DataFrame(evs, columns=labels)
         print(' Dataset ' + self.name + ':')
         print(report.to_string(index=False), '\n')
 
     def plot_rf(self):
+        """
+        Creates a new figure with a relative frequency plot for the dataset.
+
+        :return: (void)
+        """
         plt.figure()
         plt.bar(self.distinct_values[:, 0], self.relative_frequencies[:, 0], width=0.1, color='purple')
         plt.scatter(self.distinct_values, self.relative_frequencies, color='orange')
@@ -110,6 +132,11 @@ class Dataset:
         plt.legend(['Expectation = ' + str(float(np.round(self.expect, 3))), 'Relative Frequencies'])
 
     def plot_cdf(self):
+        """
+        Creates a new figure with a cumulative distribution plot for the dataset.
+
+        :return: (void)
+        """
         plt.figure()
         plt.axvline(x=self.expect, ymin=0, ymax=1, color='green')
         old_height, height = 0, 0
@@ -137,16 +164,30 @@ class Dataset:
         plt.legend(['Expectation = ' + str(float(np.round(self.expect, 3))), 'F(x)'])
 
 
-def cumdist(a, X):
-    CD = 0
-    i = 0
-    while i < X.D and X.distinct_values[i][0] <= a:
+def cumdist(x, X):
+    """
+    Computes the cumulative distribution function at position x. This is equivalent to Prob[X <= x], the likelihood that
+    a random from X is less than or equal to the constant x.
+
+    :param x: (float)
+    :param X: (Dataset)
+    :return: (float)
+    """
+    CD, i = 0, 0
+    while i < X.D and X.distinct_values[i][0] <= x:
         CD += X.relative_frequencies[i][0]
         i += 1
-    return np.round(CD, 6)
+    return float(CD)
 
 
 def prob(A, X):
+    """
+    Computes P[A, X], the probability that a random selection from X will be in A.
+
+    :param A: (Dataset)
+    :param X: (Dataset)
+    :return: (float)
+    """
     P = 0
     for i in range(0, A.D):
         for j in range(0, X.D):
