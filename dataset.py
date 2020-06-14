@@ -44,7 +44,7 @@ class Dataset:
         for i in range(0, self.D):
             ctr = 0
             for j in range(0, self.N):
-                if self.distinct_values[i] == self.values[j]:
+                if self.distinct_values[i][0] == self.values[j][0]:
                     ctr += 1
             Relative_Frequencies.append(ctr / self.N)
         self.relative_frequencies = np.array(Relative_Frequencies).reshape((-1, 1))
@@ -53,14 +53,14 @@ class Dataset:
         # Compute the expected value
         Expectation = 0
         for i in range(0, self.D):
-            Expectation += self.distinct_values[i] * self.relative_frequencies[i]
+            Expectation += self.distinct_values[i][0] * self.relative_frequencies[i][0]
         self.expect = Expectation
         del Expectation
 
         # Compute the variance
         Variance = 0
         for i in range(0, self.D):
-            Variance += (self.distinct_values[i] - self.expect)**2 * self.relative_frequencies[i]
+            Variance += (self.distinct_values[i][0] - self.expect)**2 * self.relative_frequencies[i][0]
         if Variance < 0:
             raise ValueError('ValueError: Variance can\'t be negative.')
         self.var = Variance
@@ -184,7 +184,7 @@ def union(A, B, name='Dataset'):
                 distinct = False
         if distinct:
             new_data.append(B.distinct_values[i][0])
-    return Dataset(new_data.sort(), name=name)
+    return Dataset(np.sort(new_data), name=name)
 
 
 def intersect(A, B, name='Dataset'):
